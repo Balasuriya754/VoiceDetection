@@ -890,8 +890,7 @@ registerProcessor('sender-processor', SenderProcessor);
             if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ cmd: 'reset' }));
         });
 
-        // ── BOOT ─────────────────────────────────────────────────────────────────────
-        if (location.port === '8000' || location.port === '') originInput.value = location.origin;
+        
 
         // Only connect when tab is visible — prevents ghost connections from hidden tabs
         // and from uvicorn --reload injecting extra WS clients
