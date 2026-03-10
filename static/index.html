@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Speaker Identity System</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #F7F8FA;
+            --surface: #FFFFFF;
+            --border: #E4E7EC;
+            --border-med: #D0D5DD;
+            --text: #101828;
+            --text-sec: #475467;
+            --text-muted: #98A2B3;
+            --accent: #1570EF;
+            --accent-light: #EFF4FF;
+            --accent-dark: #1D4ED8;
+            --green: #079455;
+            --green-dot: #17B26A;
+            --red: #B42318;
+            --red-light: #FEF3F2;
+            --orange: #C4320A;
+            --orange-light: #FFF6ED;
+            --shadow-sm: 0 1px 2px rgba(16, 24, 40, .05);
+            --shadow-md: 0 4px 8px rgba(16, 24, 40, .08), 0 1px 3px rgba(16, 24, 40, .04);
+            --radius: 10px;
+            --radius-sm: 6px;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 2.5rem 1rem 5rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 680px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 1.4rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .app-eyebrow {
+            font-family: 'DM Mono', monospace;
+            font-size: .7rem;
+            font-weight: 500;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 3px;
+        }
+
+        .app-title {
+            font-size: 1.22rem;
+            font-weight: 600;
+            letter-spacing: -.01em;
+        }
+
+        .ver-badge {
+            font-family: 'DM Mono', monospace;
+            font-size: .68rem;
+            color: var(--text-muted);
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 3px 10px;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        button {
+            font-family: 'DM Sans', sans-serif;
+            font-size: .875rem;
+            font-weight: 500;
+            padding: .6rem 1.25rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-med);
+            cursor: pointer;
+            transition: all .15s;
+            background: var(--surface);
+            color: var(--text);
+            box-shadow: var(--shadow-sm);
+        }
+
+        button:hover {
+            background: var(--bg);
+            border-color: var(--text-muted);
+        }
+
+        button:disabled {
+            opacity: .45;
+            cursor: not-allowed;
+        }
+
+        #btn-start {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        #btn-start:hover:not(:disabled) {
+            background: var(--accent-dark);
+            border-color: var(--accent-dark);
+        }
+
+        #btn-stop {
+            border-color: #FDA29B;
+            color: var(--red);
+        }
+
+        #btn-stop:hover:not(:disabled) {
+            background: var(--red-light);
+        }
+
+        #btn-reset {
+            color: var(--text-sec);
+        }
+
+        #btn-delete-db {
+            border-color: #FDBA74;
+            color: var(--orange);
+            margin-left: auto;
+        }
+
+        #btn-delete-db:hover:not(:disabled) {
+            background: var(--orange-light);
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 14px;
+            border-radius: 99px;
+            margin-bottom: 1.75rem;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--border-med);
+            transition: background .3s;
+        }
+
+        .dot.on {
+            background: var(--green-dot);
+            box-shadow: 0 0 0 3px rgba(23, 178, 106, .18);
+            animation: pulse-green 2s infinite;
+        }
+
+        .status-label {
+            font-family: 'DM Mono', monospace;
+            font-size: .71rem;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .status-label.on {
+            color: var(--green);
+        }
+
+        @keyframes pulse-green {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 3px rgba(23, 178, 106, .18)
+            }
+
+            50% {
+                box-shadow: 0 0 0 6px rgba(23, 178, 106, .05)
+            }
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem 1.15rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-lbl {
+            font-family: 'DM Mono', monospace;
+            font-size: .68rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .09em;
+            margin-bottom: 5px;
+        }
+
+        .stat-val {
+            font-size: 1.7rem;
+            font-weight: 600;
+            letter-spacing: -.02em;
+            line-height: 1;
+        }
+
+        .stat-val.blue {
+            color: var(--accent);
+        }
+
+        .spk-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.4rem 1.5rem;
+            margin-bottom: 1.2rem;
+            box-shadow: var(--shadow-sm);
+            transition: all .2s;
+        }
+
+        .spk-card.live {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(21, 112, 239, .08), var(--shadow-md);
+        }
+
+        .spk-eyebrow {
+            font-family: 'DM Mono', monospace;
+            font-size: .68rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            margin-bottom: 5px;
+        }
+
+        .spk-name {
+            font-size: 1.55rem;
+            font-weight: 600;
+            letter-spacing: -.02em;
+            margin-bottom: 14px;
+        }
+
+        .spk-name.dim {
+            color: var(--border-med);
+            font-weight: 400;
+            font-size: 1.2rem;
+        }
+
+        .conf-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ctrack {
+            flex: 1;
+            height: 4px;
+            background: var(--bg);
+            border-radius: 99px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .cfill {
+            height: 100%;
+            width: 0%;
+            border-radius: 99px;
+            background: linear-gradient(90deg, var(--accent), #60A5FA);
+            transition: width .4s ease;
+        }
+
+        .cpct {
+            font-family: 'DM Mono', monospace;
+            font-size: .76rem;
+            font-weight: 500;
+            color: var(--text-sec);
+            min-width: 38px;
+            text-align: right;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 10px 18px;
+            border-radius: var(--radius-sm);
+            font-size: .85rem;
+            font-weight: 500;
+            box-shadow: var(--shadow-md);
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity .25s, transform .25s;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.success {
+            background: #ECFDF3;
+            color: var(--green);
+            border: 1px solid #ABEFC6;
+        }
+
+        .toast.error {
+            background: var(--red-light);
+            color: var(--red);
+            border: 1px solid #FDA29B;
+        }
+
+        .toast.warn {
+            background: var(--orange-light);
+            color: var(--orange);
+            border: 1px solid #FDB173;
+        }
+
+        .ws-bar {
+            font-family: 'DM Mono', monospace;
+            font-size: .7rem;
+            color: var(--text-muted);
+            margin-bottom: .5rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ws-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--border-med);
+        }
+
+        .ws-dot.ok {
+            background: var(--green-dot);
+        }
+
+        .ws-dot.err {
+            background: var(--red);
+        }
+
+        .origin-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .origin-bar label {
+            font-family: 'DM Mono', monospace;
+            font-size: .68rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .origin-bar input {
+            font-family: 'DM Mono', monospace;
+            font-size: .72rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 4px 10px;
+            color: var(--text);
+            background: var(--bg);
+            width: 220px;
+        }
+
+        .origin-bar button {
+            font-size: .72rem;
+            padding: 4px 12px;
+            box-shadow: none;
+        }
+
+        .log-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            margin-top: 1.2rem;
+        }
+
+        .log-head {
+            padding: .8rem 1.2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg);
+        }
+
+        .log-head-title {
+            font-family: 'DM Mono', monospace;
+            font-size: .69rem;
+            font-weight: 500;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--text-sec);
+        }
+
+        .log-badge {
+            font-family: 'DM Mono', monospace;
+            font-size: .67rem;
+            color: var(--text-muted);
+            background: var(--border);
+            border-radius: 20px;
+            padding: 2px 9px;
+        }
+
+        .log-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: .65rem 1.2rem;
+            border-bottom: 1px solid var(--border);
+            transition: background .1s;
+        }
+
+        .log-row:last-child {
+            border-bottom: none;
+        }
+
+        .log-row:hover {
+            background: #FAFAFA;
+        }
+
+        .log-spk {
+            font-size: .86rem;
+            font-weight: 600;
+            min-width: 88px;
+        }
+
+        .log-pill {
+            font-family: 'DM Mono', monospace;
+            font-size: .69rem;
+            font-weight: 500;
+            color: var(--accent);
+            background: var(--accent-light);
+            border-radius: 20px;
+            padding: 3px 9px;
+        }
+
+        .log-ts {
+            font-family: 'DM Mono', monospace;
+            font-size: .69rem;
+            color: var(--text-muted);
+        }
+
+        .dialog-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(16, 24, 40, .35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s;
+        }
+
+        .dialog-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .dialog {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 1.8rem;
+            max-width: 360px;
+            width: 90%;
+            box-shadow: 0 20px 48px rgba(16, 24, 40, .18);
+            transform: scale(.95);
+            transition: transform .2s;
+        }
+
+        .dialog-overlay.open .dialog {
+            transform: scale(1);
+        }
+
+        .dialog h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .dialog p {
+            font-size: .875rem;
+            color: var(--text-sec);
+            margin-bottom: 1.4rem;
+            line-height: 1.5;
+        }
+
+        .dialog-btns {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .dialog-btns .btn-cancel {
+            color: var(--text-sec);
+        }
+
+        .dialog-btns .btn-confirm {
+            background: var(--red);
+            border-color: var(--red);
+            color: #fff;
+        }
+
+        .dialog-btns .btn-confirm:hover {
+            background: #9B1C0F;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="topbar">
+            <div>
+                <div class="app-eyebrow">Voice Intelligence</div>
+                <div class="app-title">Speaker Identity System</div>
+            </div>
+            <div class="ver-badge">v7.0 &nbsp;FastAPI</div>
+        </div>
+
+        
+        <div class="ws-bar">
+            <div class="ws-dot" id="ws-dot"></div>
+            <span id="ws-label">Not connected</span>
+        </div>
+
+        <div class="btn-row">
+            <button id="btn-start" disabled>▶ Start Listening</button>
+            <button id="btn-stop" disabled>⏹ Stop</button>
+            <button id="btn-reset">↺ Reset Session</button>
+            <button id="btn-delete-db">🗑 Delete Speaker DB</button>
+        </div>
+
+        <div class="status-pill">
+            <div class="dot" id="status-dot"></div>
+            <span class="status-label" id="status-label">Idle — click Start</span>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="stat-lbl">Speakers</div>
+                <div class="stat-val" id="stat-speakers">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-lbl">Utterances</div>
+                <div class="stat-val" id="stat-utterances">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-lbl">Confidence</div>
+                <div class="stat-val blue" id="stat-conf">--</div>
+            </div>
+        </div>
+
+        <div class="spk-card" id="spk-card">
+            <div class="spk-eyebrow">Currently Speaking</div>
+            <div class="spk-name dim" id="spk-name">Waiting for voice input</div>
+            <div class="conf-row">
+                <div class="ctrack">
+                    <div class="cfill" id="conf-fill"></div>
+                </div>
+                <div class="cpct" id="conf-pct" style="color:var(--border-med)">--%</div>
+            </div>
+        </div>
+
+        <div class="log-box" id="log-box" style="display:none">
+            <div class="log-head">
+                <span class="log-head-title">Session Log</span>
+                <span class="log-badge" id="log-count">0 entries</span>
+            </div>
+            <div id="log-rows"></div>
+        </div>
+
+    </div>
+
+    <div class="dialog-overlay" id="dialog-overlay">
+        <div class="dialog">
+            <h3>Delete Speaker Database?</h3>
+            <p>This permanently erases all learned speaker embeddings. The system will re-learn voices from scratch.</p>
+            <div class="dialog-btns">
+                <button class="btn-cancel" id="dlg-cancel">Cancel</button>
+                <button class="btn-confirm" id="dlg-confirm">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ── CONFIG ───────────────────────────────────────────────────────────────────
+        const TARGET_SR = 16000;   // sherpa-onnx expects 16 kHz
+        const CHUNK_MS = 500;     // send 0.5-second chunks for lower latency
+        const MAX_LOG = 20;
+
+        // ── STATE ────────────────────────────────────────────────────────────────────
+        let ws = null, audioCtx = null, micStream = null, workletNode = null;
+        let isRecording = false, sessionLog = [], utterances = 0;
+
+        // ── DOM ──────────────────────────────────────────────────────────────────────
+       
+       
+        const btnStart = document.getElementById('btn-start');
+        const btnStop = document.getElementById('btn-stop');
+        const btnReset = document.getElementById('btn-reset');
+        const btnDeleteDB = document.getElementById('btn-delete-db');
+        const statusDot = document.getElementById('status-dot');
+        const statusLabel = document.getElementById('status-label');
+        const wsDot = document.getElementById('ws-dot');
+        const wsLabel = document.getElementById('ws-label');
+        const spkCard = document.getElementById('spk-card');
+        const spkName = document.getElementById('spk-name');
+        const confFill = document.getElementById('conf-fill');
+        const confPct = document.getElementById('conf-pct');
+        const statSpeakers = document.getElementById('stat-speakers');
+        const statUtt = document.getElementById('stat-utterances');
+        const statConf = document.getElementById('stat-conf');
+        const logBox = document.getElementById('log-box');
+        const logRows = document.getElementById('log-rows');
+        const logCount = document.getElementById('log-count');
+        const dialogOverlay = document.getElementById('dialog-overlay');
+        const dlgCancel = document.getElementById('dlg-cancel');
+        const dlgConfirm = document.getElementById('dlg-confirm');
+        const toastEl = document.getElementById('toast');
+
+        // ── ORIGIN HELPERS ───────────────────────────────────────────────────────────
+        // Works whether page is opened via FastAPI (8000) or Live Server (5501/other)
+        // ── ORIGIN AUTO-DETECT (NO HARDCODING) ─────────────────────────────
+
+            // Always use the same host + port that served this page
+            function getHttpOrigin() {
+                return window.location.origin;
+            }
+
+            // Auto-switch ws / wss based on http / https
+            function getWsUrl() {
+                const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+                return `${proto}//${window.location.host}/ws`;
+            }
+
+        // ── TOAST ────────────────────────────────────────────────────────────────────
+        let toastTimer = null;
+        function showToast(msg, type = 'success', ms = 3000) {
+            toastEl.textContent = msg;
+            toastEl.className = `toast ${type} show`;
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms);
+        }
+
+        // ── WEBSOCKET ────────────────────────────────────────────────────────────────
+        function connectWS() {
+            if (ws) { try { ws.close(); } catch { } ws = null; }
+            const url = getWsUrl();
+            wsLabel.textContent = `Connecting to ${url} …`;
+            ws = new WebSocket(url);
+
+            ws.onopen = () => {
+                wsDot.className = 'ws-dot ok';
+                wsLabel.textContent = `Connected — ${url}`;
+                btnStart.disabled = false;
+                showToast('WebSocket connected ✓');
+            };
+            ws.onclose = (evt) => {
+                wsDot.className = 'ws-dot err';
+                wsLabel.textContent = 'Disconnected — click Connect to reconnect';
+                btnStart.disabled = true;
+                stopMic();
+                // No auto-reconnect: avoids duplicate connections with --reload
+            };
+            ws.onerror = () => {
+                wsDot.className = 'ws-dot err';
+                wsLabel.textContent = `Cannot reach ${url}`;
+                showToast(`Cannot reach server at ${url}`, 'error');
+            };
+            ws.onmessage = e => {
+                let data;
+                try { data = JSON.parse(e.data); } catch { return; }
+                if (data.type === 'result') handleResult(data);
+                if (data.type === 'reset_ok') { clearUI(); showToast('Session reset ✓'); }
+                if (data.type === 'vad') handleVAD(data);
+                if (data.type === 'db_deleted') { clearUI(); showToast('Speaker database deleted', 'warn'); }
+            };
+        }
+        
+
+        // ── AUDIO WORKLET (inline blob — no extra .js file needed) ───────────────────
+        // Replaces deprecated ScriptProcessorNode.
+        // Also downsamples from the browser's native rate (usually 44100/48000) → 16000 Hz.
+        const WORKLET_CODE = `
+class SenderProcessor extends AudioWorkletProcessor {
+    constructor(options) {
+        super();
+        const o         = options.processorOptions;
+        this._ratio     = o.nativeSR / o.targetSR;
+        this._chunkSize = o.chunkSamples;   // at native SR
+        this._buf       = new Float32Array(this._chunkSize);
+        this._filled    = 0;
+    }
+
+    _downsample(input) {
+        const outLen = Math.floor(input.length / this._ratio);
+        const out    = new Float32Array(outLen);
+        for (let i = 0; i < outLen; i++) {
+            out[i] = input[Math.round(i * this._ratio)];
+        }
+        return out;
+    }
+
+    process(inputs) {
+        const ch = inputs[0]?.[0];
+        if (!ch) return true;
+        let offset = 0;
+        while (offset < ch.length) {
+            const take = Math.min(this._chunkSize - this._filled, ch.length - offset);
+            this._buf.set(ch.subarray(offset, offset + take), this._filled);
+            this._filled += take;
+            offset       += take;
+            if (this._filled >= this._chunkSize) {
+                const ds = this._downsample(this._buf);
+                this.port.postMessage(ds.buffer, [ds.buffer]);
+                this._buf    = new Float32Array(this._chunkSize);
+                this._filled = 0;
+            }
+        }
+        return true;
+    }
+}
+registerProcessor('sender-processor', SenderProcessor);
+`;
+
+        async function startMic() {
+            try {
+                micStream = await navigator.mediaDevices.getUserMedia({
+                    audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true },
+                    video: false,
+                });
+
+                // Use browser's native SR — we downsample inside the worklet
+                audioCtx = new AudioContext();
+                const nativeSR = audioCtx.sampleRate;
+                const chunkSamples = Math.floor(nativeSR * (CHUNK_MS / 1000));
+
+                const blob = new Blob([WORKLET_CODE], { type: 'application/javascript' });
+                const blobURL = URL.createObjectURL(blob);
+                await audioCtx.audioWorklet.addModule(blobURL);
+                URL.revokeObjectURL(blobURL);
+
+                const src = audioCtx.createMediaStreamSource(micStream);
+                workletNode = new AudioWorkletNode(audioCtx, 'sender-processor', {
+                    processorOptions: { targetSR: TARGET_SR, nativeSR, chunkSamples },
+                });
+
+                // Send each downsampled chunk over WebSocket
+                workletNode.port.onmessage = e => {
+                    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+                    ws.send(e.data);
+                };
+
+                src.connect(workletNode);
+                // intentionally NOT connecting workletNode → destination (prevents echo)
+
+                isRecording = true;
+                setListening(true);
+                showToast(`Mic active — resampling ${nativeSR}Hz → ${TARGET_SR}Hz`);
+            } catch (err) {
+                showToast('Mic error: ' + err.message, 'error');
+            }
+        }
+
+        function stopMic() {
+            workletNode?.disconnect(); workletNode = null;
+            micStream?.getTracks().forEach(t => t.stop()); micStream = null;
+            audioCtx?.close(); audioCtx = null;
+            isRecording = false;
+            setListening(false);
+        }
+
+        // ── UI HELPERS ───────────────────────────────────────────────────────────────
+        function setListening(on) {
+            statusDot.className = 'dot' + (on ? ' on' : '');
+            statusLabel.className = 'status-label' + (on ? ' on' : '');
+            statusLabel.textContent = on ? 'Listening…' : 'Idle — click Start';
+            btnStart.disabled = on;
+            btnStop.disabled = !on;
+        }
+
+        function handleResult({ speaker, confidence, speaker_count }) {
+            spkCard.className = 'spk-card live';
+            spkName.className = 'spk-name';
+            spkName.textContent = speaker;
+            confFill.style.width = confidence + '%';
+            confPct.style.color = '';
+            confPct.textContent = confidence + '%';
+            statSpeakers.textContent = speaker_count;
+            statUtt.textContent = ++utterances;
+            statConf.textContent = confidence;
+
+            const ts = new Date().toLocaleTimeString('en-GB', { hour12: false });
+            sessionLog.unshift({ speaker, confidence, ts });
+            if (sessionLog.length > MAX_LOG) sessionLog.pop();
+            renderLog();
+        }
+
+
+        function renderLog() {
+            if (!sessionLog.length) { logBox.style.display = 'none'; return; }
+            logBox.style.display = '';
+            logCount.textContent = sessionLog.length + ' entries';
+            logRows.innerHTML = sessionLog.slice(0, 15).map(e =>
+                `<div class="log-row">
+            <span class="log-spk">${e.speaker}</span>
+            <span class="log-pill">${e.confidence}%</span>
+            <span class="log-ts">${e.ts}</span>
+        </div>`).join('');
+        }
+
+        function clearUI() {
+            spkCard.className = 'spk-card'; spkName.className = 'spk-name dim';
+            spkName.textContent = 'Waiting for voice input';
+            confFill.style.width = '0%'; confPct.style.color = 'var(--border-med)'; confPct.textContent = '--%';
+            statSpeakers.textContent = '0'; statUtt.textContent = '0'; statConf.textContent = '--';
+            utterances = 0; sessionLog = []; renderLog();
+        }
+
+        // ── DELETE DB ────────────────────────────────────────────────────────────────
+        btnDeleteDB.addEventListener('click', () => dialogOverlay.classList.add('open'));
+        dlgCancel.addEventListener('click', () => dialogOverlay.classList.remove('open'));
+        dlgConfirm.addEventListener('click', async () => {
+            dialogOverlay.classList.remove('open');
+            btnDeleteDB.disabled = true;
+            try {
+                const res = await fetch(getHttpOrigin() + '/delete-db', { method: 'DELETE' });
+                res.ok ? (clearUI(), showToast('Speaker database deleted ✓', 'warn'))
+                    : showToast('Server error — could not delete DB', 'error');
+            } catch { showToast('Network error — is the server running?', 'error'); }
+            finally { btnDeleteDB.disabled = false; }
+        });
+
+        // ── VAD HANDLER (stub — no VAD UI elements, just silently ignored) ───────────
+        function handleVAD(data) {
+            // VAD events from server — currently no VAD UI, safe to ignore
+        }
+
+        // ── BUTTONS ──────────────────────────────────────────────────────────────────
+        btnStart.addEventListener('click', startMic);
+        btnStop.addEventListener('click', stopMic);
+        btnReset.addEventListener('click', () => {
+            stopMic(); clearUI();
+            if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ cmd: 'reset' }));
+        });
+
+        // ── BOOT ─────────────────────────────────────────────────────────────────────
+        if (location.port === '8000' || location.port === '') originInput.value = location.origin;
+
+        // Only connect when tab is visible — prevents ghost connections from hidden tabs
+        // and from uvicorn --reload injecting extra WS clients
+        let _wsConnectTimer = null;
+        function scheduleConnect() {
+            clearTimeout(_wsConnectTimer);
+            _wsConnectTimer = setTimeout(connectWS, 100);
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                // Tab hidden — close WS to avoid orphan connections
+                if (ws) { try { ws.close(); } catch { } ws = null; }
+                wsDot.className = 'ws-dot err';
+                wsLabel.textContent = 'Tab hidden — reconnect when active';
+                btnStart.disabled = true;
+                stopMic();
+            } else {
+                scheduleConnect();
+            }
+        });
+
+        scheduleConnect();
+    </script>
+</body>
+
+</html>

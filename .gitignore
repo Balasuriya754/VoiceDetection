@@ -1,0 +1,97 @@
+# ─────────────────────────────
+# Python
+# ─────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
+*.pyo
+
+# Virtual environments
+venv/
+.env/
+.env.*
+.venv/
+ENV/
+
+# Python packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Logs
+*.log
+logs/
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# ─────────────────────────────
+# Environment & Secrets
+# ─────────────────────────────
+.env
+.env.local
+.env.*.local
+secrets.json
+
+# ─────────────────────────────
+# OS files
+# ─────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─────────────────────────────
+# IDE / Editor
+# ─────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ─────────────────────────────
+# Docker
+# ─────────────────────────────
+*.tar
+docker-data/
+docker-volumes/
+
+# If you mount DB as volume, ignore it
+speaker_db.pkl
+
+# ─────────────────────────────
+# ML / Model files (very large)
+# ─────────────────────────────
+
+*.pt
+*.pth
+*.bin
+models/
+checkpoints/
+
+# If model is inside project, comment above and ignore only cache:
+# hf_cache/
+# .cache/
+
+# ─────────────────────────────
+# Node (if frontend tools used later)
+# ─────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ─────────────────────────────
+# Misc
+# ─────────────────────────────
+*.tmp
+*.temp
+*.bak
